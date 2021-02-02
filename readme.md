@@ -1,7 +1,7 @@
 # Under Construction
 
 # Project: Reproducibility of PD-ICA and ET/PD/NC comparison
-The aim of this project is to first test the reproducibility of PD-ICA networks in a small local dataset. 
+The aim of this project is to test the reproducibility and replicatability of PD-ICA networks from [(Yashar, etal. 2015)](https://elifesciences.org/articles/08440) in a small local dataset and make it reproducible or replicatable if possible or investigate the reasons why it is not replicatable or replicatable. The ultimate goal of this project is to augment the inferences done with small local dataset with the avalable information from larger open dataset.
 
 # Research questions and progress
 1. Can we reproduce the PD-ICA with the original data?
