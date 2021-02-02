@@ -13,12 +13,12 @@ The aim of this project is to first test the reproducibility of PD-ICA networks 
 4. Are we able to replicate the PD-ICA with confounder controled? What is the implication for this results?
    Not yet.
 
-# H1 Problems
+# Problems
 
-# H1 Resources
+# Resources
 ## AD-ICA (subject Jacobians):
    https://www.dropbox.com/s/d3kh883mfibmnwt/PPMI_DBM_for_JB.zip?dl=0
 
-## H2 AD-ICA (ICs)
+## AD-ICA (ICs)
    https://neurovault.org/collections/860/
 
