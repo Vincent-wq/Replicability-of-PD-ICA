@@ -15,7 +15,7 @@ atlas_path = fullfile(out_path, 'm_tools', 'atlasPackage', 'atlasesMNI'); addpat
 atlas_MDTB10=fullfile(spm_path, 'toolbox/suit/atlasesSUIT/MDTB_10Regions.nii');
 atlas_SUIT=fullfile(spm_path, 'toolbox/suit/atlasesSUIT/Lobules-SUIT.nii');
 
-atlas='MDTB';
+atlas='SUIT';
 switch atlas
     case 'MDTB', curr_atlas=atlas_MDTB10; curr_atlas_str='iw_MDTB_10Regions_u_a_';
     otherwise, curr_atlas = atlas_SUIT; curr_atlas_str='iw_Lobules-SUIT_u_a_';
@@ -75,7 +75,7 @@ end
 for i_ = 1:data.n_sub
     %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     data.nii_suit{end+1}=fullfile(output_path,['wd',data.gm{i_}]);
-    % sub2atlas, run for whole group.
+    % sub2atlas, run for whole group after this loop.
     job_a.subj(i_).affineTr={fullfile(output_path,data.aff{i_})};
     job_a.subj(i_).flowfield={fullfile(output_path,data.deform{i_})};
     job_a.subj(i_).resample={fullfile(output_path,data.gm{i_})}; 
@@ -85,11 +85,12 @@ for i_ = 1:data.n_sub
     disp(['registering to atlas ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     job_s.Affine={fullfile(output_path,data.aff{i_})};
     job_s.flowfield={fullfile(output_path,data.deform{i_})};
-    job_s.resample={curr_atlas}; 
-    job_s.ref={fullfile(output_path,[data.t1_name{i_} '.nii'])};
-    tic
+    job_s.resample={curr_atlas};
+    %job_s.ref={fullfile(output_path,[data.t1_name{i_} '.nii'])}; % reference to original T1
+    job_s.ref={fullfile(output_path, data.gm{i_})};
+    %tic
     suit_reslice_dartel_inv(job_s); % registration from atlas to individual
-    toc
+    %toc
     V=spm_vol(fullfile(output_path, [curr_atlas_str, data.gm{i_}]));
     X=spm_read_vols(V);
     lobule_vol_=zeros(num_lobules,1);
@@ -104,6 +105,11 @@ switch atlas
     case 'MDTB', csvwrite(fullfile(output_path, 'res', 'res_MDTB10.csv'),roi_tab);
     otherwise,   csvwrite(fullfile(output_path, 'res', 'res_SUIT34.csv'),roi_tab);
 end
+
+%% test code
+%suit_reslice_inv(curr_atlas,fullfile(output_path,data.aff{i_}))
+
+%% old code
 % summarize volumes (no idea what we need this function for)
 % suit_ROI_summarize(data.nii_suit,'atlas', atlas_MDTB10);
 % suit_ROI_summarize(data.nii_suit,'atlas', atlas_SUIT);
