@@ -69,28 +69,34 @@ for i_ = 1:data.n_sub
     job_n.subjND(i_).isolation={fullfile(output_path,data.mask{i_})}; 
     toc
 end
-%suit_normalize_dartel(job_n) % map subject space -> SUIT space
+suit_normalize_dartel(job_n) % map subject space -> SUIT space
 
 %% rerun normalization for orgin problems subjects.
-err_sub=['sub-0004','sub-0030','sub-0035','sub-0098','sub-0125','sub-0132','sub-0081', 'sub-0119','sub-0122',...
-    'sub-0134','sub-0140','sub-0141','sub-0142','sub-0143','sub-1012','sub-1230'];
-k=1;
-for i_ = 1:data.n_sub
-    if contains(err_sub,data.id(i_,:))
-        tic
-        disp([num2str(i_),'i--------------k',int2str(k)])
-        suit_isolate_seg({data.nii_out{i_}}); % segmentation: cerebelum isolation
-        disp(['normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
-        % normalize to SUIT space, generate affine and deformation field.
-        job_err.subjND(k).gray={fullfile(output_path,data.gm{i_})}; 
-        job_err.subjND(k).white={ fullfile(output_path,data.wm{i_})};
-        job_err.subjND(k).isolation={fullfile(output_path,data.mask{i_})}; 
-        k=k+1;
-        toc
-    end
-end
-suit_normalize_dartel(job_err) % map subject space -> SUIT space
-    
+% err_sub=['sub-0004','sub-0030','sub-0035','sub-0098','sub-0125','sub-0132','sub-0081', 'sub-0119','sub-0122',...
+%     'sub-0134','sub-0140','sub-0141','sub-0142','sub-0143','sub-1012','sub-1230'];
+% k=1;
+% for i_ = 1:data.n_sub
+%     if contains(err_sub,data.id(i_,:))
+%         tic
+%         disp([num2str(i_),'i--------------k',int2str(k)])
+%         suit_isolate_seg({data.nii_out{i_}}); % segmentation: cerebelum isolation
+%         disp(['normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
+%         normalize to SUIT space, generate affine and deformation field.
+%         job_err.subjND(k).gray={fullfile(output_path,data.gm{i_})}; 
+%         job_err.subjND(k).white={ fullfile(output_path,data.wm{i_})};
+%         job_err.subjND(k).isolation={fullfile(output_path,data.mask{i_})}; 
+%         k=k+1;
+%         toc
+%     end
+% end
+% suit_normalize_dartel(job_err) % map subject space -> SUIT space
+% % fix sub-002
+% for i_=3:18
+%     job_norm1.subjND(1).gray={fullfile(output_path,data.gm{i_})}; 
+%     job_norm1.subjND(1).white={ fullfile(output_path,data.wm{i_})};
+%     job_norm1.subjND(1).isolation={fullfile(output_path,data.mask{i_})}; 
+%     suit_normalize_dartel(job_norm1)
+% end
 %% apply affine and deformation to obtain atlas space images
 for i_ = 1:data.n_sub
     %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
