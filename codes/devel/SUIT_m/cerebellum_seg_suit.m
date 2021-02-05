@@ -15,7 +15,7 @@ atlas_path = fullfile(out_path, 'm_tools', 'atlasPackage', 'atlasesMNI'); addpat
 atlas_MDTB10=fullfile(spm_path, 'toolbox/suit/atlasesSUIT/MDTB_10Regions.nii');
 atlas_SUIT=fullfile(spm_path, 'toolbox/suit/atlasesSUIT/Lobules-SUIT.nii');
 
-atlas='SUIT';
+atlas='SUIT'; % atlas='SUIT';
 switch atlas
     case 'MDTB', curr_atlas=atlas_MDTB10; curr_atlas_str='iw_MDTB_10Regions_u_a_';
     otherwise, curr_atlas = atlas_SUIT; curr_atlas_str='iw_Lobules-SUIT_u_a_';
@@ -69,58 +69,49 @@ for i_ = 1:data.n_sub
     job_n.subjND(i_).isolation={fullfile(output_path,data.mask{i_})}; 
     toc
 end
-suit_normalize_dartel(job_n) % map subject space -> SUIT space
+%suit_normalize_dartel(job_n) % map subject space -> SUIT space
 
-%% rerun normalization for orgin problems subjects.
-% err_sub=['sub-0004','sub-0030','sub-0035','sub-0098','sub-0125','sub-0132','sub-0081', 'sub-0119','sub-0122',...
-%     'sub-0134','sub-0140','sub-0141','sub-0142','sub-0143','sub-1012','sub-1230'];
-% k=1;
-% for i_ = 1:data.n_sub
-%     if contains(err_sub,data.id(i_,:))
-%         tic
-%         disp([num2str(i_),'i--------------k',int2str(k)])
-%         suit_isolate_seg({data.nii_out{i_}}); % segmentation: cerebelum isolation
-%         disp(['normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
-%         normalize to SUIT space, generate affine and deformation field.
-%         job_err.subjND(k).gray={fullfile(output_path,data.gm{i_})}; 
-%         job_err.subjND(k).white={ fullfile(output_path,data.wm{i_})};
-%         job_err.subjND(k).isolation={fullfile(output_path,data.mask{i_})}; 
-%         k=k+1;
-%         toc
-%     end
-% end
-% suit_normalize_dartel(job_err) % map subject space -> SUIT space
-% % fix sub-002
-% for i_=3:18
+% Rerun segmentation and normalization for origin problem subjects:
+% Run1: ['sub-0004','sub-0030','sub-0035','sub-0098','sub-0125','sub-0132','sub-0081', 'sub-0119','sub-0122',...
+%    'sub-0134','sub-0140','sub-0141','sub-0142','sub-0143','sub-1012','sub-1230']
+% Run2: err_sub=['sub-0004','sub-1450','sub-1500', 'sub-1920', 'sub-2400', 'sub-3700', 'sub-3900', 'sub-0041', 'sub-0102', 'sub-0108'];
+%atlas='SUIT';
+% Run3:
+err_sub=['sub-0041','sub-1450'];
+k=1;
+for i_ = 1:data.n_sub
+    if contains(err_sub,data.id(i_,:))
+        tic
+        disp([num2str(i_),'  i  ------  k  ',int2str(k)])
+        suit_isolate_seg({data.nii_out{i_}}); % segmentation: cerebelum isolation
+        disp(['normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
+        %normalize to SUIT space, generate affine and deformation field.
+        job_err.subjND(k).gray={fullfile(output_path,data.gm{i_})}; 
+        job_err.subjND(k).white={ fullfile(output_path,data.wm{i_})};
+        job_err.subjND(k).isolation={fullfile(output_path,data.mask{i_})}; 
+        k=k+1;
+        toc
+    end
+end
+suit_normalize_dartel(job_err) % map subject space -> SUIT space
+% fix single subject normalization: sub-002
+% for i_=1:length(err_ind)
 %     job_norm1.subjND(1).gray={fullfile(output_path,data.gm{i_})}; 
 %     job_norm1.subjND(1).white={ fullfile(output_path,data.wm{i_})};
 %     job_norm1.subjND(1).isolation={fullfile(output_path,data.mask{i_})}; 
 %     suit_normalize_dartel(job_norm1)
 % end
-%% apply affine and deformation to obtain atlas space images
+%% DBM and atlas to individual.
 for i_ = 1:data.n_sub
     %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     data.nii_suit{end+1}=fullfile(output_path,['wd',data.gm{i_}]);
-    % sub2atlas, run for whole group after this loop.
-    job_atlas.subj(i_).affineTr={fullfile(output_path,data.aff{i_})};
-    job_atlas.subj(i_).flowfield={fullfile(output_path,data.deform{i_})};
-    job_atlas.subj(i_).resample={fullfile(output_path,data.gm{i_})}; 
-    job_atlas.subj(i_).jactransf=1;
-    job_atlas.subj(i_).mask={fullfile(output_path,data.mask{i_})};
-    % atlas2sub, run for individual subject.  
-end
-suit_reslice_dartel(job_atlas)
-
-for i_ = 1:data.n_sub
-    %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
-    data.nii_suit{end+1}=fullfile(output_path,['wd',data.gm{i_}]);
-    % DBM: sub2atlas, run for whole group after this loop.
+    %% DBM: sub2atlas, run for whole group after this loop.
     job_a.subj(i_).affineTr={fullfile(output_path,data.aff{i_})};
     job_a.subj(i_).flowfield={fullfile(output_path,data.deform{i_})};
     job_a.subj(i_).resample={fullfile(output_path,data.gm{i_})}; 
     job_a.subj(i_).jactransf=1;
     job_a.subj(i_).mask={fullfile(output_path,data.mask{i_})};
-    % atlas2sub, run for individual subject.
+    %% atlas2sub, individual level run.
     disp(['registering to atlas ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     job_s.Affine={fullfile(output_path,data.aff{i_})};
     job_s.flowfield={fullfile(output_path,data.deform{i_})};
@@ -138,7 +129,7 @@ for i_ = 1:data.n_sub
     roi_tab(i_,:)=lobule_vol_;
     data.lobules{end+1}=lobule_vol_;
 end
-%suit_reslice_dartel(job_a)
+suit_reslice_dartel(job_a)
 switch atlas
     case 'MDTB', csvwrite(fullfile(output_path, 'res', 'res_MDTB10.csv'),roi_tab);
     otherwise,   csvwrite(fullfile(output_path, 'res', 'res_SUIT34.csv'),roi_tab);
