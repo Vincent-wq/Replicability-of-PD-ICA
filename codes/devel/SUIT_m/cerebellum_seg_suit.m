@@ -59,8 +59,7 @@ for i_ = 1:data.n_sub
     tic
     disp(['isolateing + normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     image_str = data.t1_name{i_}; image_file = data.nii_out{i_}; 
-    data.mask{end+1}=['c_', image_str,'_pcereb.nii'];
-    data.gm{end+1}=[image_str,'_seg1.nii'];  data.wm{end+1}=[image_str,'_seg2.nii'];
+    data.gm{end+1}=[image_str,'_seg1.nii'];  data.wm{end+1}=[image_str,'_seg2.nii']; data.mask{end+1}=['c_', image_str,'_pcereb.nii'];
     data.aff{end+1} = ['Affine_', image_str,'_seg1.mat']; data.deform{end+1} = ['u_a_', image_str,'_seg1.nii'];
     data.roi_sum{end+1}=fullfile( output_path, [image_str, '_roi.txt']);
     %suit_isolate_seg({image_file}); % segmentation: cerebelum isolation
@@ -72,10 +71,44 @@ for i_ = 1:data.n_sub
 end
 %suit_normalize_dartel(job_n) % map subject space -> SUIT space
 
+%% rerun normalization for orgin problems subjects.
+err_sub=['sub-0004','sub-0030','sub-0035','sub-0098','sub-0125','sub-0132','sub-0081', 'sub-0119','sub-0122',...
+    'sub-0134','sub-0140','sub-0141','sub-0142','sub-0143','sub-1012','sub-1230'];
+k=1;
+for i_ = 1:data.n_sub
+    if contains(err_sub,data.id(i_,:))
+        tic
+        disp([num2str(i_),'i--------------k',int2str(k)])
+        suit_isolate_seg({data.nii_out{i_}}); % segmentation: cerebelum isolation
+        disp(['normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
+        % normalize to SUIT space, generate affine and deformation field.
+        job_err.subjND(k).gray={fullfile(output_path,data.gm{i_})}; 
+        job_err.subjND(k).white={ fullfile(output_path,data.wm{i_})};
+        job_err.subjND(k).isolation={fullfile(output_path,data.mask{i_})}; 
+        k=k+1;
+        toc
+    end
+end
+suit_normalize_dartel(job_err) % map subject space -> SUIT space
+    
+%% apply affine and deformation to obtain atlas space images
 for i_ = 1:data.n_sub
     %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
     data.nii_suit{end+1}=fullfile(output_path,['wd',data.gm{i_}]);
     % sub2atlas, run for whole group after this loop.
+    job_atlas.subj(i_).affineTr={fullfile(output_path,data.aff{i_})};
+    job_atlas.subj(i_).flowfield={fullfile(output_path,data.deform{i_})};
+    job_atlas.subj(i_).resample={fullfile(output_path,data.gm{i_})}; 
+    job_atlas.subj(i_).jactransf=1;
+    job_atlas.subj(i_).mask={fullfile(output_path,data.mask{i_})};
+    % atlas2sub, run for individual subject.  
+end
+suit_reslice_dartel(job_atlas)
+
+for i_ = 1:data.n_sub
+    %disp(['applying normalization ', num2str(i_),' in ', num2str(data.n_sub), ' :', data.id(i_,:)]);
+    data.nii_suit{end+1}=fullfile(output_path,['wd',data.gm{i_}]);
+    % DBM: sub2atlas, run for whole group after this loop.
     job_a.subj(i_).affineTr={fullfile(output_path,data.aff{i_})};
     job_a.subj(i_).flowfield={fullfile(output_path,data.deform{i_})};
     job_a.subj(i_).resample={fullfile(output_path,data.gm{i_})}; 
@@ -86,7 +119,6 @@ for i_ = 1:data.n_sub
     job_s.Affine={fullfile(output_path,data.aff{i_})};
     job_s.flowfield={fullfile(output_path,data.deform{i_})};
     job_s.resample={curr_atlas};
-    %job_s.ref={fullfile(output_path,[data.t1_name{i_} '.nii'])}; % reference to original T1
     job_s.ref={fullfile(output_path, data.gm{i_})};
     %tic
     suit_reslice_dartel_inv(job_s); % registration from atlas to individual
