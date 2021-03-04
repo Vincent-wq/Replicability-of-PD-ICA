@@ -13,3 +13,6 @@ codes/devel/fs_analysis/ad_group_corr_ic0.png
 codes/devel/fs_analysis/.ipynb_checkpoints/0_cerebellar_confounder-checkpoint.ipynb
 codes/devel/SUIT_m/cerebellum_seg_suit.asv
 codes/devel/cerebellum_confounder/.ipynb_checkpoints/*
+codes/devel/cerebellum_confounder/nilearn_cache/joblib/module_versions.json
+codes/devel/cerebellum_confounder/nilearn_cache/joblib/nilearn/image/resampling/resample_img/996d7d2f8f068dce3ff9cf00c3e64eed/output.pkl
+codes/devel/cerebellum_confounder/nilearn_cache/joblib/nilearn/image/resampling/resample_img/a7b2a59c41c9eb153ff27059bd6b8b81/metadata.json
